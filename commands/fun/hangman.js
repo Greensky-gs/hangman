@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 
 module.exports = {
     help: {
-        name: 'pendu'
+        name: 'hangman'
     },
     /**
      * @param {Discord.Message} message 
@@ -15,6 +15,69 @@ module.exports = {
         let remainingChances = 10;
         let lettersFoundedIndex = [];
 
+        const generateDrawing = () => {
+            const drawings = [
+'______',
+`   |
+   |
+   |
+   |
+___|___`,`
+   |
+   |
+   |
+   |
+___|___`,`
+    ____
+   |
+   |
+   |
+   |
+___|___`,`
+    ____
+   |/
+   |
+   |
+   |
+___|___`,`
+    ____
+   |/   |
+   |
+   |
+   |
+___|___`,`
+    ____
+   |/   |
+   |    O
+   |
+   |
+___|___`,`
+    ____
+   |/   |
+   |    O
+   |    |
+   |
+___|___`,`
+    ____
+   |/   |
+   |    O
+   |   -|-
+   |
+___|___`,`
+
+    ____
+   |/   |
+   |    O
+   |   -|-
+   |    /\\
+___|___`
+            ];
+
+            let drawingIndex = 10 - remainingChances;
+            const drawing = drawings[drawingIndex];
+
+            return drawing;
+        };
         const generatePlate = () => {
             let plate = '';
             for (let i = 0; i < word.length; i++) {
@@ -33,7 +96,7 @@ module.exports = {
         const collector = message.channel.createMessageCollector({ filter: x => !x.author.bot, time: 120000 });
         const embed = new Discord.MessageEmbed()
             .setTitle("Pendu")
-            .setDescription(generatePlate() + `\n\n${remainingChances} chances restantes`)
+            .setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`)
             .setColor(message.guild.me.displayHexColor)
 
         const dahboard = await message.channel.send({ embeds: [ embed ] });
@@ -47,13 +110,13 @@ module.exports = {
                     if (word[i] == letter) lettersFoundedIndex.push(i);
                 };
 
-                embed.setDescription(generatePlate() + `\n\n${remainingChances} chances restantes`);
+                embed.setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`);
                 if (lettersFoundedIndex.length == word.length) {
                     collector.stop('ended');
                 };
             } else {
                 remainingChances--;
-                embed.setDescription(generatePlate() + `\n\n${remainingChances} chances restantes`);
+                embed.setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`);
             };
 
             dahboard.edit({ embeds: [ embed ] });
