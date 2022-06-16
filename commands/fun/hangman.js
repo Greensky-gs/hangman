@@ -91,20 +91,81 @@ ___|___`
 
             return plate;
         };
-        let trash = new Discord.Collection();        
+        const generateComponents = () => {
+            let letters = [];
+            let stringLetters = 'abcdefghijklmnopqrstuvwxyz';
 
-        const collector = message.channel.createMessageCollector({ filter: x => !x.author.bot, time: 120000 });
+            for (let i = 0; i < stringLetters.length; i++) {
+                let letter = stringLetters[i];
+                if (letter) letters.push(letter);
+            };
+
+            const row = new Discord.MessageActionRow()
+
+            if (letters.length <= 24) {
+                const options = letters.map((l) => ({ value: l, label: l.toUpperCase(), description: `Letter ${l}` }));
+
+                let selector = new Discord.MessageSelectMenu()
+                    .setCustomId('select-menu-hangman')
+                    .setMaxValues(1)
+                    .setMinValues(1)
+                    .setPlaceholder('Choose a letter')
+                    .setOptions(options);
+
+                row.addComponents(selector);
+            } else {
+                let options = [];
+
+                for (let i = 0; i < letters.length; i++) {
+                    let letter = letters[i];
+                    if (!letter) return;
+                    
+                    options.push({
+                        value: letter,
+                        label: letter.toUpperCase(),
+                        description: `Letter ${letter}`
+                    });
+
+                    if (i == 23) {
+                        const selector = new Discord.MessageSelectMenu()
+                            .setPlaceholder('Choose a letter')
+                            .setCustomId('select-menu-hangman')
+                            .setMaxValues(1)
+                            .setMinValues(1)
+                            .setOptions(options)
+                        
+                        row.addComponents(selector);
+                        options = new Array(0);
+                    };
+                };
+
+                const selector = new Discord.MessageSelectMenu()
+                    .setPlaceholder('Choose a letter')
+                    .setCustomId('select-menu-hangman')
+                    .setMaxValues(1)
+                    .setMinValues(1)
+                    .setOptions(options)
+                        
+                row.addComponents(selector);
+            };
+
+            return row;
+        }
+
         const embed = new Discord.MessageEmbed()
             .setTitle("Pendu")
             .setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`)
             .setColor(message.guild.me.displayHexColor)
 
-        const dahboard = await message.channel.send({ embeds: [ embed ] });
+        const dashboard = await message.channel.send({ embeds: [ embed ] });
+        const collector = dashboard.createMessageComponentCollector({ filter: x => x.user.id === message.author.id, time: 120000 });
 
-        collector.on('collect', (msg) => {
-            trash.set(msg.id, msg);
-            
-            let letter = msg.content[0].toLowerCase();
+        collector.on('collect', /**@param {Discord.SelectMenuInteraction} i*/async(i) => {
+            let letter = i.values[0].toLowerCase();
+
+            await i.reply({ content: `Letter ${letter}` }).catch(() => {});
+            i.deleteReply().catch(() => {});
+
             if (word.includes(letter)) {
                 for (let i = 0; i < word.length; i++) {
                     if (word[i] == letter) lettersFoundedIndex.push(i);
@@ -119,7 +180,7 @@ ___|___`
                 embed.setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`);
             };
 
-            dahboard.edit({ embeds: [ embed ] });
+            dashboard.edit({ embeds: [ embed ], components: [ generateComponents() ] });
 
             if (remainingChances == 0) {
                 return collector.stop('loose');
@@ -134,7 +195,7 @@ ___|___`
                 embed.setDescription(`The word was **${word}**. You loose`);
             };
 
-            dahboard.edit({ embeds: [ embed ] }).catch(() => {});
+            dashboard.edit({ embeds: [ embed ], components: [] }).catch(() => {});
         });
     }
 };
