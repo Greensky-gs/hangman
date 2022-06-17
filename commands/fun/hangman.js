@@ -157,7 +157,7 @@ ___|___`
             .setDescription(generateDrawing() + '\n\n' + generatePlate() + `\n\n${remainingChances} chances remaining`)
             .setColor(message.guild.me.displayHexColor)
 
-        const dashboard = await message.channel.send({ embeds: [ embed ] });
+        const dashboard = await message.channel.send({ embeds: [ embed ], components: [ generateComponents() ] });
         const collector = dashboard.createMessageComponentCollector({ filter: x => x.user.id === message.author.id, time: 120000 });
 
         collector.on('collect', /**@param {Discord.SelectMenuInteraction} i*/async(i) => {
