@@ -135,6 +135,7 @@ ___|___`
                             .setOptions(options)
                         
                         row.addComponents(selector);
+                        options = null;
                         options = new Array(0);
                     };
                 };
