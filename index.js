@@ -1,7 +1,11 @@
 const Discord = require('discord.js');
 const fs = require('fs');
+const { config } = require('dotenv');
+config();
 
-const client = new Discord.Client();
+const client = new Discord.Client({
+  intents: [Discord.GatewayIntentBits.Guilds, Discord.GatewayIntentBits.GuildMessages, Discord.GatewayIntentBits.MessageContent]
+});
 client.commands = new Discord.Collection();
 
 fs.readdirSync('./commands').forEach((dir) => {
@@ -12,7 +16,7 @@ fs.readdirSync('./commands').forEach((dir) => {
   });
 });
 
-client.on('message', (message) => {
+client.on('messageCreate', (message) => {
   const prefix = '!';
   
   let args = message.content.slice(prefix.length).trim().split(/ +/g);
@@ -28,4 +32,4 @@ client.on('message', (message) => {
   });
 });
 
-client.login("your bot's token");
+client.login(process.env.token);
